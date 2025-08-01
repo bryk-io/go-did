@@ -8,7 +8,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/google/uuid v1.6.0
 	github.com/mr-tron/base58 v1.2.0
-	github.com/piprate/json-gold v0.6.0
+	github.com/piprate/json-gold v0.7.0
 	github.com/stretchr/testify v1.10.0
 	go.bryk.io/pkg v0.0.0-20250623171018-8f3f4709eea0
 	golang.org/x/crypto v0.39.0
