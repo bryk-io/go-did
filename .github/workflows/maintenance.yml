@@ -18,7 +18,7 @@ jobs:
           egress-policy: audit
 
       - name: Tag stale issues and PRs
-        uses: actions/stale@3a9db7e6a41a89f618792c92c0e97cc736e1b13f # v10.0.0
+        uses: actions/stale@5f858e3efba33a5ca4407a664cc011ad407f2008 # v10.1.0
         with:
           # On the 'debug' mode the action will not perform any operation.
           # Add the secret ACTIONS_STEP_DEBUG with a value of 'true' in the repository.

@@ -1,5 +1,7 @@
 name: ci
-permissions: read-all
+# default job permissions
+permissions:
+  contents: read
 env:
   # used to hold the commit message
   commit_msg: ""
@@ -34,6 +36,8 @@ jobs:
       # Checkout code
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       # Configure runner environment
       - name: Set up runner environment
@@ -61,7 +65,7 @@ jobs:
       - name: Scan dependencies
         if: ${{ !contains(env.commit_msg, '[skip scan-deps]') }}
         run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
+          go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
           govulncheck -format sarif .
 
       # Scan for leaked secrets
@@ -96,6 +100,8 @@ jobs:
       # Checkout code
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
 
       # Configure runner environment
       - name: Set up runner environment

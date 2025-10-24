@@ -5,13 +5,6 @@
 # https://golang.org/cmd/link/
 LD_FLAGS += -s -w
 
-# "buf" is used to manage protocol buffer definitions, if not installed
-# locally we fallback to use a builder image.
-buf:=buf
-ifeq (, $(shell which buf))
-	buf=docker run --platform linux/amd64 --rm -it -v $(shell pwd):/workdir ghcr.io/bryk-io/buf-builder:1.48.0 buf
-endif
-
 # For commands that require a specific package path, default to all local
 # subdirectories if no value is provided.
 pkg?="..."
@@ -48,31 +41,29 @@ docs:
 lint:
 	# Go code
 	golangci-lint run -v ./$(pkg)
+	semgrep --config "p/trailofbits"
 
 ## protos: Compile all protobuf definitions and RPC services
 protos:
 	# Generate package images and code
 	make proto-build pkg=sample/v1
 
-## scan-deps: Look for known vulnerabilities in the project dependencies
-# https://github.com/sonatype-nexus-community/nancy
-scan-deps:
-	@go list -json -deps ./... | nancy sleuth --skip-update-check
+## scan-ci: Look for vulnerabilities in CI Workflows
+# https://docs.zizmor.sh/usage/
+scan-ci:
+	actionlint
+	zizmor --gh-token `gh auth token` .github/workflows
 
-## scan-secrets: Scan project code for accidentally leaked secrets
-# https://github.com/trufflesecurity/trufflehog
-scan-secrets:
-	@docker run -it --rm --platform linux/arm64 \
-	-v "$PWD:/repo" \
-	trufflesecurity/trufflehog:latest \
-	filesystem --directory /repo --only-verified
-
+## scan-deps: Scan code and dependencies for known vulnerabilities
 # https://appsec.guide/docs/static-analysis/semgrep/
 # https://go.googlesource.com/vuln
-## scan-vuln: Scan code and dependencies for known vulnerabilities
-scan-vuln:
-	govulncheck ./...
-	semgrep --config "p/trailofbits"
+scan-deps:
+	govulncheck -mode source -scan package ./...
+
+## scan-secrets: Scan project code for accidentally leaked secrets
+# https://gitleaks.io
+scan-secrets:
+	gitleaks git -v
 
 ## test: Run all unitary tests
 test:
@@ -87,43 +78,3 @@ test:
 # https://github.com/golang/go/wiki/Modules#how-to-upgrade-and-downgrade-dependencies
 updates:
 	@GOWORK=off go list -u -f '{{if (and (not (or .Main .Indirect)) .Update)}}{{.Path}}: [{{.Version}} -> {{.Update.Version}}]{{end}}' -mod=mod -m all 2> /dev/null
-
-proto-test:
-	# Verify style and consistency
-	$(buf) lint --path proto/$(pkg)
-
-	# Verify breaking changes. This fails if no image is already present,
-	# use `buf build --o proto/$(pkg)/image.bin --path proto/$(pkg)` to generate it.
-	$(buf) breaking --against proto/$(pkg)/image.bin
-
-proto-build:
-	# Verify PB definitions
-	make proto-test pkg=$(pkg)
-
-	# Build package image
-	$(buf) build --output proto/$(pkg)/image.bin --path proto/$(pkg)
-
-	# Generate package code using buf.gen.yaml
-	$(buf) generate --output proto --path proto/$(pkg)
-
-	# Add compiler version to generated files
-	@-sed -i.bak 's/(unknown)/buf-v$(shell $(buf) --version)/g' proto/$(pkg)/*.pb.go
-
-	# Remove package comment added by the gateway generator to avoid polluting
-	# the package documentation.
-	@-sed -i.bak '/\/\*/,/*\//d' proto/$(pkg)/*.pb.gw.go
-
-	# "protoc-gen-validate" don't have runtime dependencies but the generated
-	# code includes the package by the default =/
-	@-sed -i.bak '/protoc-gen-validate/d' proto/$(pkg)/*.pb.go
-
-	# "protoc-gen-openapiv2" don't have runtime dependencies but the generated
-	# code includes the package by the default =/
-	@-sed -i.bak '/protoc-gen-openapiv2/d' proto/$(pkg)/*.pb.go
-
-	# Remove in-place edit backup files
-	@-rm proto/$(pkg)/*.bak
-
-	# Style adjustments (required for consistency)
-	gofmt -s -w proto/$(pkg)
-	goimports -w proto/$(pkg)

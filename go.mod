@@ -10,7 +10,7 @@ require (
 	github.com/mr-tron/base58 v1.2.0
 	github.com/piprate/json-gold v0.7.0
 	github.com/stretchr/testify v1.11.1
-	go.bryk.io/pkg v0.0.0-20251009034857-ac365977f4e0
+	go.bryk.io/pkg v0.0.0-20251024152056-5622b3c0b1cd
 	golang.org/x/crypto v0.43.0
 )
 
