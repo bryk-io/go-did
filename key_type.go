@@ -35,7 +35,7 @@ func (v KeyType) String() string {
 	if int(v) > len(values) {
 		return "unknown key type"
 	}
-	return values[v]
+	return values[v] // nolint: gosec
 }
 
 // SignatureType returns the value identifier for the kind of
@@ -49,7 +49,7 @@ func (v KeyType) SignatureType() string {
 	if int(v) > len(values) {
 		return "unknown signature type"
 	}
-	return values[v]
+	return values[v] // nolint: gosec
 }
 
 // EncodePublicKey adjust the `vk` verification key to properly
