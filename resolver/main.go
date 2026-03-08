@@ -246,6 +246,6 @@ func (ri *Instance) ResolutionHandler(rw http.ResponseWriter, rq *http.Request) 
 	default:
 		// return custom representation
 		rw.Header().Set("Content-Type", opts.Accept)
-		_, _ = rw.Write(res.Representation)
+		_, _ = rw.Write(res.Representation) // nolint
 	}
 }
