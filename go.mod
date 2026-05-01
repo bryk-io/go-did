@@ -5,7 +5,7 @@ go 1.25.4
 require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.1
 	github.com/google/uuid v1.6.0
-	github.com/mr-tron/base58 v1.2.0
+	github.com/mr-tron/base58 v1.3.0
 	github.com/piprate/json-gold v0.8.0
 	github.com/stretchr/testify v1.11.1
 	go.bryk.io/pkg v0.0.0-20260402184209-58a9b1365fa5
