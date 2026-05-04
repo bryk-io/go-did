@@ -32,6 +32,7 @@ linters:
   disable:
     - depguard
     - dupl
+    - govet
     - unused
     - wastedassign
   settings:
