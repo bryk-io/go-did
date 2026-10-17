@@ -305,10 +305,14 @@ func newCryptoKey(kt KeyType) (*VerificationKey, error) {
 
 // Load an existing cryptographic key.
 func loadExistingKey(private []byte, kt KeyType) (*VerificationKey, error) {
+	// Copy the private key into Go-managed memory. The provided slice may
+	// point to memory outside the Go heap (e.g. a memguard locked buffer),
+	// which the crypto packages can't handle safely.
 	pk := &VerificationKey{
 		Type:    kt,
-		Private: private,
+		Private: make([]byte, len(private)),
 	}
+	copy(pk.Private, private)
 
 	// Use a challenge to validate key usage
 	challenge := make([]byte, 32)
@@ -323,17 +327,17 @@ func loadExistingKey(private []byte, kt KeyType) (*VerificationKey, error) {
 	)
 	switch kt {
 	case KeyTypeEd:
-		pub, err = validateKeyEd(private, challenge)
+		pub, err = validateKeyEd(pk.Private, challenge)
 		if err != nil {
 			return nil, err
 		}
 	case KeyTypeSecp256k1:
-		pub, err = validateKeySecp256k1(private, challenge)
+		pub, err = validateKeySecp256k1(pk.Private, challenge)
 		if err != nil {
 			return nil, err
 		}
 	case KeyTypeRSA:
-		pub, err = validateKeyRSA(private, challenge)
+		pub, err = validateKeyRSA(pk.Private, challenge)
 		if err != nil {
 			return nil, err
 		}
